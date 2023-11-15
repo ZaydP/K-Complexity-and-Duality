@@ -1,6 +1,7 @@
 using LinearAlgebra
 using DelimitedFiles
 using SparseArrays
+using Plots
 
 function comm(a,b)
     return a*b-b*a
@@ -97,6 +98,34 @@ function LanczosDoc(H, S, nmax, btol)
     return bs;
 end
 
+function LanczosDocMacro(H, S, nmax, btol)
+    bs = zeros(nmax)
+    Op1 = S
+    NormSq1 = BigFloat(InnProd(Op1, Op1))
+    LOp = comm(H, Op1)
+    Op2 = LOp
+
+    for i = 2:nmax
+        @views NormSq2 = InnProd(Op2, Op2)
+        @views LOp = comm(H, Op2)
+        @views B = InnProd(Op1, LOp)
+        @views tolval = B / NormSq1
+        @views Op3 = LOp - tolval * Op1
+
+        if abs(tolval) < btol
+            println("tolval reached btol at i=",i)
+            break
+        end
+
+        @inbounds bs[i] = B / sqrt(NormSq1 * NormSq2)
+
+        @views Op1 = Op2
+        @views Op2 = Op3
+        @views NormSq1 = NormSq2
+    end
+    return bs;
+end
+
 
 p1 = [0 1; 1 0]
 p2 = [0 -1*im;1*im 0]
@@ -107,25 +136,31 @@ p3 = [1 0; 0 -1]
 #for L=5 use nmax>516,  and prec>361. ratio = 0.700
 #for L=6 use nmax>2016, and prec>?
 
-L=6
-nmax=2050
-prec=1600
+L=5
+nmax=600
+prec=400
 prec_base2=round(Int,prec*3.4)
 btol=0.0001
 
-H=sparse(IsingSum(L,p3,2,p3,p1))
-Op=sparse(IsingSum(L,0,2,p3,0))
+H_sparse = sparse(IsingSum(L,p3,2,p3,p1))
+Op_sparse = sparse(IsingSum(L,0,2,p3,0))
+
+
 
 # setprecision(BigFloat,prec,base=10)
 setprecision(BigFloat,prec_base2)
+
+
 @time begin
-    bs=LanczosDoc(H,Op,nmax,btol);
+    bs=LanczosDoc(H_sparse,Op_sparse,nmax,btol);
 end
+
+
+
 
 open("/home/pndzay001/julia_code/julia_outputs/julia_output_L6_sparse.txt", "w") do file
     writedlm(file,bs)
 end
 
-# bruh=readdlm("julia_output_L6.txt")
-
+bruh=readdlm("julia_output_L6.txt")
 
