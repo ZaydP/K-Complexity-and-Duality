@@ -2,8 +2,22 @@ using LinearAlgebra
 using SparseArrays
 using Plots
 using BenchmarkTools
+using Pkg
+
+pkg"add git@github.com:madeleineudell/ParallelSparseMatMul.jl.git"
+
 function comm(a,b)
     return a*b-b*a
+end
+
+function comm2(a,b)
+    x=similar(a)
+    y=similar(b)
+    return mul!(x,a,b)-mul!(y,b,a)
+end
+
+function commBLAS(a,b)
+    return BLAS.gemm('N','N',a,b)
 end
 
 function InnProd(a, b)
@@ -26,6 +40,10 @@ end
 
 function InnProd3(a,b)
     return dot(a,b)
+end
+
+function InnProd4(a,b)
+    return BLAS.dot(a,b)
 end
 
 function TrProd(a,b)
@@ -229,29 +247,34 @@ plot(bs)
 v1 = rand(1000,1000)
 v2 = rand(1000,1000)
 
-@time begin
-    InnProd(v1,v2)
-end
-
-@time begin
-    InnProdBLAS(v1,v2)
-end
-
-@time begin
-    InnProd2(v1,v2)
-end
-
-@time begin
-    InnProd3(v1,v2)
-end
 
 
-@time begin
-    TrProd(v1,v2)
-end
 
 @time InnProd(v1,v2)
 
 @btime InnProd(v1,v2)
 
-@btime InnProd($v1,$v2)
+@benchmark InnProd(v1,v2)
+
+@benchmark InnProdBLAS(v1,v2)
+
+@benchmark InnProd2(v1,v2)
+
+@benchmark InnProd3(v1,v2)
+
+@benchmark InnProd4(v1,v2)
+
+
+
+#============== TESTING COMMUTATORS (MATRIX MULTIPLICATION)===========#
+
+#   BLAS will run multi-threaded by default. Control it with BLAS.set_num_threads. BLAS does not work with sparse matrix format
+#   
+#   CSC format means transpose multiplication (x=S'*y), is faster than multiplication y = S*x
+
+
+@benchmark comm(v1,v2)
+
+@benchmark comm2(v1,v2)
+
+@benchmark commBLAS(v1,v2)
