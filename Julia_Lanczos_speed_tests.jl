@@ -4,7 +4,6 @@ using Plots
 using BenchmarkTools
 using Pkg
 
-pkg"add git@github.com:madeleineudell/ParallelSparseMatMul.jl.git"
 
 function comm(a,b)
     return a*b-b*a
