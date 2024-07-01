@@ -7,6 +7,9 @@ TFIMHamiltonian::usage="TFIMHamiltonian[L,InteractionStrength,MagneticFieldStren
 TFIMAltHamiltonian::usage="TFIMAltHamiltonian[L,InteractionStrength,MagneticFieldStrength,PBC=False] generates matrix for Transverse Field Ising Model Hamiltonian with \[Sigma]x interaction and -\[Sigma]z magnetic field. This is a (x,y,z)->(-z,y,x) rotation from the canonical form. The strength constants have a negative coefficient. Open Boundary Conditions are default, set PBC=True for Periodic Boundary Conditions";
 
 
+(*Alt denotes that there has been a is a (x,y,z)->(-z,y,x) rotation from the canonical form *)
+
+
 \[Sigma]x::usage="Sum of \[Sigma]x operators on each site over chain of length L";
 \[Sigma]y::usage="Sum of \[Sigma]y operators on each site over chain of length L";
 \[Sigma]z::usage="Sum of \[Sigma]z operators on each site over chain of length L";
@@ -82,7 +85,7 @@ HIsingBMode[L_,n_]:=ChainTensorProduct[L,PauliMatrix[1],n];
 
 
 HIsingAltIntMode[L_,n_]:=ChainNeighbourTensorProduct[L,PauliMatrix[1],PauliMatrix[1],n];
-HIsingAltBMode[L_,n_]:=ChainTensorProduct[L,PauliMatrix[3],n];
+HIsingAltBMode[L_,n_]:=ChainTensorProduct[L,-PauliMatrix[3],n];
 
 
 HIsingAltIntMode[3,3]
